@@ -41,12 +41,28 @@ def get_version_name(version):
     except KeyError:
         return "Unknown Version"
 
+class ModuleConfig:
+    LABEL = 'module configuration'
+    L_PROJ_SPECIFIC = 'project-specific modules'
+    L_BLOCKED = 'blocked modules'
+    def __init__(self):
+        self.project_specific = []
+        self.blocked_modules = []
+    def to_dict(self):
+        return {
+            self.L_PROJ_SPECIFIC: self.project_specific,
+            self.L_BLOCKED: self.blocked_modules,
+        }
+    def from_dict(self, data):
+        self.project_specific = data[self.L_PROJ_SPECIFIC]
+        self.blocked_modules = data[self.L_BLOCKED]
 
 class Project(object):
     def __init__(self):
         self.romtype = "Unknown"
         self._resources = {}
         self._dir_name = ""
+        self.moduleconfig = ModuleConfig()
 
     def load(self, f, romtype=None):
         if isinstance(f, str):
@@ -61,6 +77,7 @@ class Project(object):
             if (romtype is None) or (romtype == data["romtype"]):
                 self.romtype = data["romtype"]
                 self._resources = data["resources"]
+                self.moduleconfig.from_dict(data[self.moduleconfig.LABEL])
                 if "version" in data:
                     self.version = data["version"]
                 else:
@@ -82,12 +99,16 @@ class Project(object):
             self._resources = {}
 
     def write(self, filename):
+        # Dump non-resource values at start of file
         tmp = {
             'romtype': self.romtype,
-            'resources': self._resources,
-            'version': FORMAT_VERSION}
+            'version': FORMAT_VERSION,
+            self.moduleconfig.LABEL: self.moduleconfig.to_dict(),
+        }
         f = open(filename, 'w+')
         yml_dump(tmp, f)
+        # Append resource list after other values
+        yml_dump({'resources': self._resources}, f)
         f.close()
 
     def get_resource(self, module_name, resource_name, extension="dat", mode="r+", encoding=None, newline=None):
