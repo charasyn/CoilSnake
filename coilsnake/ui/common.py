@@ -40,24 +40,22 @@ def setup_logging(quiet=False, verbose=False, stream=None):
     logging.root.addHandler(handler)
 
 
-def upgrade_project(project_path, base_rom_filename, progress_bar=None):
+def upgrade_project(project_path, base_rom_filename, ccscript_offset=None, progress_bar=None):
     if not os.path.isdir(project_path):
         raise RuntimeError("Project directory \"" + project_path + "\" is not a directory.")
     if not os.path.isfile(base_rom_filename):
         raise RuntimeError("Base Rom \"" + base_rom_filename + "\" is not a file.")
 
-    modules = load_modules()
-
     # Open project
     project_filename = os.path.join(project_path, PROJECT_FILENAME)
-
-    project = Project()
-    project.load(project_filename)
+    project = Project(project_filename)
     check_if_project_too_new(project)
 
     if project.version == FORMAT_VERSION:
         log.info("Project is already up to date.")
         return
+
+    modules = project.load_modules()
 
     log.info("Upgrading project from version {} to {}".format(
         get_version_name(project.version),
@@ -88,7 +86,7 @@ def upgrade_project(project_path, base_rom_filename, progress_bar=None):
         log.info("Finished upgrading {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
 
     project.version = FORMAT_VERSION
-    project.write(project_filename)
+    project.save()
 
     log.info("Upgraded {} in {:.2f}s".format(project_path, time.time() - upgrade_start_time))
 
@@ -99,13 +97,12 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
     if not os.path.isfile(base_rom_filename):
         raise RuntimeError("Base Rom \"" + base_rom_filename + "\" is not a file.")
 
-    modules = load_modules()
-
     project_filename = os.path.join(project_path, PROJECT_FILENAME)
-    project = Project()
-    project.load(project_filename)
+    project = Project(project_filename)
     check_if_project_too_old(project)
     check_if_project_too_new(project)
+
+    modules = project.load_modules()
 
     if base_rom_filename != output_rom_filename:
         copyfile(base_rom_filename, output_rom_filename)
@@ -175,13 +172,13 @@ def decompile_rom(rom_filename, project_path, progress_bar=None):
     if not os.path.isfile(rom_filename):
         raise RuntimeError("Rom \"" + rom_filename + "\" is not a file.")
 
-    modules = load_modules()
-
     rom = Rom()
     rom.from_file(rom_filename)
 
-    project = Project()
-    project.load(os.path.join(project_path, PROJECT_FILENAME), rom.type)
+    project_filename = os.path.join(project_path, PROJECT_FILENAME)
+    project = Project(project_filename, rom.type)
+
+    modules = project.load_modules()
 
     compatible_modules = [(name, clazz) for name, clazz in modules if clazz.is_compatible_with_romtype(rom.type)]
     tick_amount = 1.0/(2*len(compatible_modules))
@@ -210,7 +207,7 @@ def decompile_rom(rom_filename, project_path, progress_bar=None):
         log.info("Finished decompiling {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
 
     log.debug("Saving Project")
-    project.write(os.path.join(project_path, PROJECT_FILENAME))
+    project.save()
 
     log.info("Decompiled to {} in {:.2f}s".format(project_path, time.time() - decompile_start_time))
 
@@ -374,18 +371,6 @@ def strip_header(romfile):
     else:
         return False
 
-
-def load_modules():
-    all_modules = []
-    with open_asset("modulelist.txt") as f:
-        for line in f:
-            line = line.rstrip('\n')
-            if line[0] == '#':
-                continue
-            components = line.split('.')
-            mod = __import__("coilsnake.modules." + line, globals(), locals(), [components[-1]])
-            all_modules.append((line, mod.__dict__[components[-1]]))
-    return all_modules
 
 
 def check_if_project_too_new(project):
