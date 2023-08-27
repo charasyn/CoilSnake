@@ -65,8 +65,7 @@ def main():
                         dest="enemyInfo", help="Enemy number")
     args = parser.parse_args()
 
-    proj = Project.Project()
-    proj.load(args.projDir[0] + os.sep + Project.PROJECT_FILENAME)
+    proj = Project.Project(args.projDir[0] + os.sep + Project.PROJECT_FILENAME)
 
     partyStats = [None, None, None, None]
     with proj.get_resource("eb", "stats_growth_vars", "yml", "r") as f:

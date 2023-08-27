@@ -3,6 +3,7 @@ import logging
 import os
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
+from coilsnake.util.common.assets import open_asset
 from coilsnake.util.common.yml import yml_load, yml_dump
 
 
@@ -44,21 +45,21 @@ def get_version_name(version):
 class ModuleConfig:
     LABEL = 'module configuration'
     L_PROJ_SPECIFIC = 'project-specific modules'
-    L_BLOCKED = 'blocked modules'
+    L_ENABLED = 'enabled modules'
     def __init__(self):
         self.project_specific = []
-        self.blocked_modules = []
+        self.enabled_modules = []
     def to_dict(self):
         return {
             self.L_PROJ_SPECIFIC: self.project_specific,
-            self.L_BLOCKED: self.blocked_modules,
+            self.L_ENABLED: self.enabled_modules,
         }
     def from_dict(self, data):
         self.project_specific = data[self.L_PROJ_SPECIFIC]
-        self.blocked_modules = data[self.L_BLOCKED]
+        self.enabled_modules = data[self.L_ENABLED]
 
 class Project(object):
-    def __init__(self):
+    def __init__(self, snake_file, requested_romtype=None):
         self.romtype = "Unknown"
         self._resources = {}
         self._dir_name = ""
@@ -131,3 +132,16 @@ class Project(object):
         if os.path.isfile(fname):
             os.remove(fname)
         del self._resources[module_name][resource_name]
+
+    def load_modules():
+        all_modules = []
+        with open_asset("modulelist.txt") as f:
+            for line in f:
+                line = line.rstrip('\n')
+                if line[0] == '#':
+                    continue
+                components = line.split('.')
+                mod = __import__("coilsnake.modules." + line, globals(), locals(), [components[-1]])
+                all_modules.append((line, mod.__dict__[components[-1]]))
+        return all_modules
+
