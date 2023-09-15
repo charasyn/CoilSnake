@@ -55,8 +55,6 @@ def upgrade_project(project_path, base_rom_filename, ccscript_offset=None, progr
         log.info("Project is already up to date.")
         return
 
-    modules = project.load_modules()
-
     log.info("Upgrading project from version {} to {}".format(
         get_version_name(project.version),
         get_version_name(FORMAT_VERSION)))
@@ -66,6 +64,10 @@ def upgrade_project(project_path, base_rom_filename, ccscript_offset=None, progr
     rom.from_file(base_rom_filename)
     check_if_types_match(project=project, rom=rom)
 
+    # Upgrade the project file itself.
+    project.upgrade()
+
+    modules = project.load_modules()
     compatible_modules = [(name, clazz) for name, clazz in modules if clazz.is_compatible_with_romtype(rom.type)]
     tick_amount = 1.0/len(compatible_modules)
 
@@ -141,15 +143,12 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
     log.info("Compiling Project {}".format(project_path))
     compile_start_time = time.time()
 
-    for module_name, module_class in modules:
-        if module_class.is_compatible_with_romtype(rom.type):
-            for free_range in module_class.FREE_RANGES:
-                rom.deallocate(free_range)
+    # Deallocate all the freed ranges in a first pass
+    for module_name, module_class in compatible_modules:
+        for free_range in module_class.FREE_RANGES:
+            rom.deallocate(free_range)
 
-    for module_name, module_class in modules:
-        if not module_class.is_compatible_with_romtype(rom.type):
-            continue
-
+    for module_name, module_class in compatible_modules:
         log.info("Compiling {}...".format(module_class.NAME))
         start_time = time.time()
         with module_class() as module:
@@ -187,9 +186,6 @@ def decompile_rom(rom_filename, project_path, progress_bar=None):
     decompile_start_time = time.time()
 
     for module_name, module_class in compatible_modules:
-        if not module_class.is_compatible_with_romtype(rom.type):
-            continue
-
         log.info("Decompiling {}...".format(module_class.NAME))
         start_time = time.time()
         with module_class() as module:
