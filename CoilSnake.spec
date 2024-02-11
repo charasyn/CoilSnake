@@ -32,13 +32,22 @@ with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
         module = "coilsnake.modules." + line
         hiddenimports.append(module)
 
-pyver = '{}.{}'.format(sys.version_info[0], sys.version_info[1])
+def get_binary_path_in_build_lib(pathInLib):
+    plat = sys_platform if sys_platform != 'darwin' else 'macosx'
+    verMajor, verMinor = sys.version_info[0:2]
+    libFormats = [
+        f'{plat}*-cpython-{verMajor}{verMinor}', # new, seems to work with new Python + setuptools
+        f'{plat}*-{verMajor}.{verMinor}',        # required for Python 3.8
+    ]
+    for libFormat in libFormats:
+        globResult = glob.glob(f'build/lib.{libFormat}/{pathInLib}')
+        if globResult:
+            assert len(globResult) == 1, '\n'.join(["Found too many binaries:"] + [f'- {r}' for r in globResult])
+            return globResult[0]
+    assert False, f"Couldn't locate file: build/lib.[version]/{pathInLib}"
 
 binaries = [(
-    'build/lib.{}-{}/coilsnake/util/eb/native_comp.cp*'.format(
-        sys_platform if sys_platform != 'darwin' else 'macosx',
-        pyver
-    ),
+    get_binary_path_in_build_lib('coilsnake/util/eb/native_comp.cp*'),
     'coilsnake/util/eb'
 )]
 
