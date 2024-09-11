@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 # format. Version numbers are necessary because the format of data files may
 # change between versions of CoilSnake.
 
-FORMAT_VERSION = 12
+FORMAT_VERSION = 1013
 
 # Names for each version, corresponding the the CS version
 VERSION_NAMES = {
@@ -28,6 +28,7 @@ VERSION_NAMES = {
     10: "4.0",
     11: "4.1",
     12: "4.2",
+    1013: "4.2 Mother 2 Prototype",
 }
 
 # The default project filename

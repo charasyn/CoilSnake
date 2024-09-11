@@ -1,32 +1,32 @@
 common.UsedRangeModule
 common.PatchModule
-eb.MusicModule
-eb.CharacterSubstitutionsModule
-eb.CccInterfaceModule
-eb.SkipNamingModule
-eb.MiscTextModule
-eb.StaffModule
-eb.MapSpriteModule
-eb.DoorModule
-eb.SpriteGroupModule
-eb.MiscTablesModule
-eb.ExpandedTablesModule
-eb.SwirlModule
-eb.TownMapIconModule
-eb.DeathScreenModule
-eb.SoundStoneModule
-eb.CastModule
-eb.AnimationModule
-eb.MapModule
-eb.MapEnemyModule
-eb.MapMusicModule
-eb.MapEventModule
-eb.FontModule
-eb.WindowGraphicsModule
-eb.BattleBgModule
-eb.CompressedGraphicsModule
-eb.EnemyModule
-eb.TitleScreenModule
-eb.TilesetModule
+# eb.MusicModule
+# eb.CharacterSubstitutionsModule
+# eb.CccInterfaceModule
+# eb.SkipNamingModule
+# eb.MiscTextModule
+# eb.StaffModule
+# eb.MapSpriteModule
+# eb.DoorModule
+# eb.SpriteGroupModule
+# eb.MiscTablesModule
+# eb.ExpandedTablesModule
+# eb.SwirlModule
+# eb.TownMapIconModule
+# eb.DeathScreenModule
+# eb.SoundStoneModule
+# eb.CastModule
+# eb.AnimationModule
+# eb.MapModule
+# eb.MapEnemyModule
+# eb.MapMusicModule
+# eb.MapEventModule
+# eb.FontModule
+# eb.WindowGraphicsModule
+# eb.BattleBgModule
+# eb.CompressedGraphicsModule
+# eb.EnemyModule
+# eb.TitleScreenModule
+# eb.TilesetModule
 smb.TextModule
 common.LunarIpsCompatibilityModule
