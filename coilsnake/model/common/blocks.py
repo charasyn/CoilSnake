@@ -1,6 +1,8 @@
 import array
 import copy
+import logging
 import os
+import traceback
 from zlib import crc32
 
 from coilsnake.exceptions.common.exceptions import OutOfBoundsError, InvalidArgumentError, \
@@ -8,6 +10,7 @@ from coilsnake.exceptions.common.exceptions import OutOfBoundsError, InvalidArgu
 from coilsnake.util.common.assets import open_asset
 from coilsnake.util.common.yml import yml_load
 
+log = logging.getLogger(__name__)
 
 def check_range_validity(range, size):
     begin, end = range
@@ -299,6 +302,14 @@ class AllocatableBlock(Block):
         if data is not None:
             self[allocated_range[0]:allocated_range[1] + 1] = data
 
+        if True:
+            stk = traceback.extract_stack(limit=10)
+            partition_predicate = lambda s: s.filename.endswith('common.py') and s.name == 'compile_project'
+            partition_idx = next(iter(idx for idx, s in enumerate(stk) if partition_predicate(s)), None)
+            if partition_idx is not None:
+                stk = stk[partition_idx+1:-1]
+                format_s = lambda s: f'{s.filename.rpartition("coilsnake")[2][1:]}:{s.lineno}:{s.name}'
+                log.info("DBG: alloc 0x%04x at 0x%06x src: %s", size, allocated_range[0], '; '.join(format_s(s) for s in stk))
         return allocated_range[0]
 
     def get_largest_unallocated_range(self):
