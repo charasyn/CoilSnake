@@ -315,6 +315,10 @@ class AllocatableBlock(Block):
             raise NotEnoughUnallocatedSpaceError("Not enough free space left")
         return largest_begin, largest_end
 
+    def cleanup_deallocated_regions(self):
+        for begin, end in self.unallocated_ranges:
+            arr = array.array('B', (0 for _ in range(end - begin + 1)))
+            self[begin:end+1] = arr
 
 with open_asset("romtypes.yml") as f:
     ROM_TYPE_MAP = yml_load(f)

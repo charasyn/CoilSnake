@@ -144,15 +144,18 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
     log.info("Compiling Project {}".format(project_path))
     compile_start_time = time.time()
 
-    for module_name, module_class in modules:
-        if module_class.is_compatible_with_romtype(rom.type):
-            for free_range in module_class.FREE_RANGES:
-                rom.deallocate(free_range)
+    # for module_name, module_class in modules:
+    #     if module_class.is_compatible_with_romtype(rom.type):
+    #         for free_range in module_class.FREE_RANGES:
+    #             rom.deallocate(free_range)
 
     for module_name, module_class in modules:
         if not module_class.is_compatible_with_romtype(rom.type):
             continue
 
+        # Try and get it to put stuff where the original data was
+        for free_range in module_class.FREE_RANGES:
+            rom.deallocate(free_range)
         log.info("Compiling {}...".format(module_class.NAME))
         start_time = time.time()
         with module_class() as module:
@@ -163,6 +166,8 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
             if progress_bar:
                 progress_bar.tick(tick_amount)
         log.info("Finished compiling {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
+
+    rom.cleanup_deallocated_regions()
 
     log.debug("Saving ROM")
     rom.to_file(output_rom_filename)
